@@ -1,13 +1,14 @@
 from __future__ import annotations
+from airflow.config import settings
 
 import pyvista as pv
 
 
 class Room:
     def __init__(self) -> None:
-        self.length = 100.0
-        self.width = 100.0
-        self.height = 10.0
+        self.length = settings.ROOM_LENGTH
+        self.width = settings.ROOM_WIDTH
+        self.height = settings.ROOM_HEIGHT
         self.mesh = pv.Box(bounds=(-self.length / 2.0, self.length / 2.0, -self.width / 2.0, self.width / 2.0, 0.0, self.height))
         self.floor = pv.Box(bounds=(-self.length / 2.0, self.length / 2.0, -self.width / 2.0, self.width / 2.0, -0.05, 0.05))
         self.columns = self._build_columns()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from airflow.config import settings
 
 import numpy as np
 import pyvista as pv
@@ -6,9 +7,9 @@ import pyvista as pv
 
 class Fan:
     def __init__(self) -> None:
-        self.radius = 1.22
-        self.height = 0.4
-        self.center = (0.0, 0.0, 8.6)
+        self.radius = settings.FAN_RADIUS
+        self.height = settings.FAN_HEIGHT
+        self.center = settings.FAN_CENTER
         self.mesh = pv.Cylinder(center=self.center, direction=(0.0, 0.0, 1.0), radius=self.radius / 2.0, height=self.height)
         self.blades = []
         for angle in [0, 120, 240]:
