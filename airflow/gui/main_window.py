@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 from PySide6.QtCore import QTimer, Qt
-from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtGui import QAction, QImage, QPixmap
 from PySide6.QtWidgets import QLabel, QMainWindow, QVBoxLayout, QWidget
 import pyvista as pv
 
@@ -35,12 +35,26 @@ class MainWindow(QMainWindow):
         self.plotter = pv.Plotter(off_screen=True, window_size=(800, 600))
         self.room_scene = RoomScene(self.plotter)
         self.room_scene.build()
+        self._setup_toolbar()
         self._render_scene()
         self._save_screenshot("startup")
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._animate)
         self._timer.start(16)
+
+    def _setup_toolbar(self) -> None:
+        toolbar = self.addToolBar("Visualization")
+        toolbar.setMovable(False)
+
+        self.streamlines_action = QAction("Streamlines", self)
+        self.streamlines_action.setCheckable(True)
+        self.streamlines_action.toggled.connect(self._toggle_streamlines)
+        toolbar.addAction(self.streamlines_action)
+
+    def _toggle_streamlines(self, checked: bool) -> None:
+        self.room_scene.set_streamlines_visible(checked)
+        self._render_scene()
 
     def _render_scene(self) -> None:
         image = self.plotter.screenshot(return_img=True)
