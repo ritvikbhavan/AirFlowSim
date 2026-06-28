@@ -52,8 +52,17 @@ class MainWindow(QMainWindow):
         self.streamlines_action.toggled.connect(self._toggle_streamlines)
         toolbar.addAction(self.streamlines_action)
 
+        self.velocity_vectors_action = QAction("Velocity Vectors", self)
+        self.velocity_vectors_action.setCheckable(True)
+        self.velocity_vectors_action.toggled.connect(self._toggle_velocity_vectors)
+        toolbar.addAction(self.velocity_vectors_action)
+
     def _toggle_streamlines(self, checked: bool) -> None:
         self.room_scene.set_streamlines_visible(checked)
+        self._render_scene()
+
+    def _toggle_velocity_vectors(self, checked: bool) -> None:
+        self.room_scene.set_velocity_vectors_visible(checked)
         self._render_scene()
 
     def _render_scene(self) -> None:

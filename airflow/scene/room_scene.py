@@ -7,6 +7,7 @@ from airflow.physics.fan_model import FanModel
 from airflow.physics.velocity_field import VelocityField
 from airflow.visualization.particle_system import ParticleSystem
 from airflow.visualization.streamlines import StreamlineVisualization
+from airflow.visualization.vector_field import VelocityVectorVisualization
 
 
 class RoomScene:
@@ -25,6 +26,8 @@ class RoomScene:
         )
         self.streamlines: StreamlineVisualization | None = None
         self.streamlines_visible = False
+        self.velocity_vectors: VelocityVectorVisualization | None = None
+        self.velocity_vectors_visible = False
 
     def build(self) -> None:
         self.plotter.add_mesh(self.room.mesh, color="lightblue", opacity=0.15, style="wireframe")
@@ -69,6 +72,10 @@ class RoomScene:
         self.streamlines_visible = visible
         self._sync_streamlines()
 
+    def set_velocity_vectors_visible(self, visible: bool) -> None:
+        self.velocity_vectors_visible = visible
+        self._sync_velocity_vectors()
+
     def _sync_streamlines(self) -> None:
         if self.streamlines is None:
             if not self.streamlines_visible:
@@ -93,3 +100,38 @@ class RoomScene:
             )
 
         self.streamlines.actor.SetVisibility(self.streamlines_visible)
+
+    def _sync_velocity_vectors(self) -> None:
+        if self.velocity_vectors is None:
+            if not self.velocity_vectors_visible:
+                return
+
+            self.velocity_vectors = VelocityVectorVisualization(
+                velocity_field=self.velocity_field,
+                bounds=self._fan_visualization_bounds(radius=self.fan.radius * 4.0),
+            )
+
+        if self.velocity_vectors.mesh.n_points == 0:
+            return
+
+        if self.velocity_vectors.actor is None:
+            self.velocity_vectors.actor = self.plotter.add_mesh(
+                self.velocity_vectors.mesh,
+                color="limegreen",
+                opacity=0.8,
+            )
+
+        self.velocity_vectors.actor.SetVisibility(self.velocity_vectors_visible)
+
+    def _fan_visualization_bounds(self, radius: float) -> tuple[float, float, float, float, float, float]:
+        room_xmin, room_xmax, room_ymin, room_ymax, room_zmin, room_zmax = self.room.mesh.bounds
+        fan_x, fan_y, fan_z = self.fan.center
+
+        return (
+            max(room_xmin, fan_x - radius),
+            min(room_xmax, fan_x + radius),
+            max(room_ymin, fan_y - radius),
+            min(room_ymax, fan_y + radius),
+            max(room_zmin, fan_z - radius * 1.5),
+            min(room_zmax, fan_z),
+        )
